@@ -2,8 +2,10 @@ package com.simplflight.aravo.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -51,8 +53,9 @@ public class User {
     @Builder.Default
     private Integer highestStreak = 0;
 
-    @Column(name = "registration_year", nullable = false)
-    private Integer registrationYear;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @Column(name = "focus_preference", nullable = false)
     @Builder.Default

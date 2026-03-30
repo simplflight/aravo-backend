@@ -1,6 +1,7 @@
 package com.simplflight.aravo.dto.response;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record UserResponse(
@@ -13,7 +14,7 @@ public record UserResponse(
         Integer totalPoints,
         Integer streak,
         Integer highestStreak,
-        Integer registrationYear,
+        LocalDateTime createdAt,
         Integer focusPreference,
         Integer restPreference,
         LocalDate lastActivityDate

@@ -11,7 +11,7 @@ CREATE TABLE users (
     total_points INTEGER NOT NULL DEFAULT 0,
     streak INTEGER NOT NULL DEFAULT 0,
     highest_streak INTEGER NOT NULL DEFAULT 0,
-    registration_year INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     focus_preference INTEGER NOT NULL DEFAULT 25,
     rest_preference INTEGER NOT NULL DEFAULT 5,
     last_activity_date DATE

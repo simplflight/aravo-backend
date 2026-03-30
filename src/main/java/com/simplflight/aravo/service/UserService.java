@@ -46,7 +46,6 @@ public class UserService {
                 .nickname(request.nickname())
                 .name(request.name())
                 .password(passwordEncoder.encode(request.password()))
-                .registrationYear(LocalDate.now().getYear())
                 .build();
         
         User savedUser = userRepository.save(user);
@@ -78,7 +77,7 @@ public class UserService {
                 user.getTotalPoints(),
                 user.getStreak(),
                 user.getHighestStreak(),
-                user.getRegistrationYear(),
+                user.getCreatedAt(),
                 user.getFocusPreference(),
                 user.getRestPreference(),
                 user.getLastActivityDate()
