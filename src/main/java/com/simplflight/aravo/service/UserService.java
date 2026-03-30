@@ -7,6 +7,8 @@ import com.simplflight.aravo.dto.response.UserResponse;
 import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.security.TokenService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,16 +24,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final TokenService tokenService;
+    private final MessageSource messageSource;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este email já está em uso.");
+            String errorMessage = messageSource.getMessage("error.email.in.use", null, LocaleContextHolder.getLocale());
+
+            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMessage);
         }
 
         if (userRepository.existsByNickname(request.nickname())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este nickname já está em uso.");
+            String errorMessage = messageSource.getMessage("error.nickname.in.use", null, LocaleContextHolder.getLocale());
+
+            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMessage);
         }
 
         User user = User.builder()
@@ -49,11 +56,13 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public String login(UserLoginRequest request) {
+        String errorMessage = messageSource.getMessage("error.invalid.credentials", null, LocaleContextHolder.getLocale());
+
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMessage));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMessage);
         }
 
         return tokenService.generateToken(user);

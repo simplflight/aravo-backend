@@ -6,19 +6,19 @@ import jakarta.validation.constraints.Size;
 
 public record UserRegisterRequest(
 
-        @NotBlank(message = "O email é obrigatório.")
-        @Email(message = "O formato do email é inválido.")
+        @NotBlank(message = "{user.email.required}")
+        @Email(message = "{user.email.invalid}")
         String email,
 
-        @NotBlank(message = "O nickname é obrigatório.")
-        @Size(min = 3, max = 100, message = "O nickname deve ter entre 3 e 100 caracteres.")
+        @NotBlank(message = "{user.nickname.required}")
+        @Size(min = 3, max = 100, message = "{user.nickname.size}")
         String nickname,
 
-        @NotBlank(message = "O nome é obrigatório.")
+        @NotBlank(message = "{user.name.required}")
         String name,
 
-        @NotBlank(message = "A senha é obrigatória.")
-        @Size(min = 6, message = "A senha deve possuir, pelo menos, 6 caracteres.")
+        @NotBlank(message = "{user.password.required}")
+        @Size(min = 6, message = "{user.password.size}")
         String password
 ) {
 }
