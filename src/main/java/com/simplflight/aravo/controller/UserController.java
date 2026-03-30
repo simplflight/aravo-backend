@@ -1,6 +1,8 @@
 package com.simplflight.aravo.controller;
 
+import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
+import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
 import com.simplflight.aravo.service.UserService;
 import jakarta.validation.Valid;
@@ -25,5 +27,13 @@ public class UserController {
         UserResponse response = userService.register(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginRequest request) {
+
+        String token = userService.login(request);
+
+        return ResponseEntity.ok(new TokenResponse(token));
     }
 }

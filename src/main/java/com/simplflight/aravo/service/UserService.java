@@ -1,9 +1,11 @@
 package com.simplflight.aravo.service;
 
 import com.simplflight.aravo.domain.entity.User;
+import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.response.UserResponse;
 import com.simplflight.aravo.repository.UserRepository;
+import com.simplflight.aravo.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +21,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
+    private final TokenService tokenService;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -42,6 +45,18 @@ public class UserService {
         User savedUser = userRepository.save(user);
         
         return mapToResponse(savedUser);
+    }
+
+    @Transactional(readOnly = true)
+    public String login(UserLoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas."));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas.");
+        }
+
+        return tokenService.generateToken(user);
     }
 
     private UserResponse mapToResponse(User user) {
