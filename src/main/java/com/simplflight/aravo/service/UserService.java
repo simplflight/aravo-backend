@@ -67,6 +67,10 @@ public class UserService {
         return tokenService.generateToken(user);
     }
 
+    public UserResponse getProfile(User currentUser) {
+        return mapToResponse(currentUser);
+    }
+
     private UserResponse mapToResponse(User user) {
         return new UserResponse(
                 user.getId(),
