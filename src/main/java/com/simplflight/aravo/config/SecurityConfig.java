@@ -35,6 +35,7 @@ public class SecurityConfig {
                         // Permite o acesso geral
                         .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
+                        .requestMatchers("/error").permitAll()
                         // Bloqueia o acesso não autenticado para qualquer outra requisição
                         .anyRequest().authenticated()
                 )
