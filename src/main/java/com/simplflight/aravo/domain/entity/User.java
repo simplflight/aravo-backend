@@ -71,13 +71,4 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Activity> activities = new HashSet<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "user_item",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "item_id")
-    )
-    @Builder.Default
-    private Set<Item> items = new HashSet<>();
 }

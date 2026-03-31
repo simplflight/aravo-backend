@@ -1,48 +1,44 @@
 package com.simplflight.aravo.domain.entity;
 
-import com.simplflight.aravo.domain.enums.ItemType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "items")
+@Table(name = "inventory")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Item {
+public class Inventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @EqualsAndHashCode.Include
     private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
 
     @Column(nullable = false)
-    private String description;
-
-    @Column(nullable = false)
-    private Integer price;
-
-    @Column(name = "max_quantity", nullable = false)
-    private Integer maxQuantity;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ItemType type;
+    private Integer quantity;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "icon_key", nullable = false)
-    private String iconKey;
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
