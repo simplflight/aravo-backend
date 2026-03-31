@@ -30,15 +30,11 @@ public class UserService {
     public UserResponse register(UserRegisterRequest request) {
 
         if (userRepository.existsByEmail(request.email())) {
-            String errorMessage = messageSource.getMessage("error.email.in.use", null, LocaleContextHolder.getLocale());
-
-            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMessage);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.email.in.use"));
         }
 
         if (userRepository.existsByNickname(request.nickname())) {
-            String errorMessage = messageSource.getMessage("error.nickname.in.use", null, LocaleContextHolder.getLocale());
-
-            throw new ResponseStatusException(HttpStatus.CONFLICT, errorMessage);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.nickname.in.use"));
         }
 
         User user = User.builder()
@@ -55,7 +51,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public String login(UserLoginRequest request) {
-        String errorMessage = messageSource.getMessage("error.invalid.credentials", null, LocaleContextHolder.getLocale());
+        String errorMessage = getMessage("error.invalid.credentials");
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMessage));
@@ -86,5 +82,9 @@ public class UserService {
                 user.getRestPreference(),
                 user.getLastActivityDate()
         );
+    }
+
+    private String getMessage(String code) {
+        return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
     }
 }
