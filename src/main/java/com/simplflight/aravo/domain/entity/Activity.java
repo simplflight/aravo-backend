@@ -32,9 +32,6 @@ public class Activity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    private Integer difficulty;
-
     @Column(nullable = false, length = 100)
     private String category;
 
