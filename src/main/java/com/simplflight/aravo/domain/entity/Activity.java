@@ -1,5 +1,6 @@
 package com.simplflight.aravo.domain.entity;
 
+import com.simplflight.aravo.domain.enums.ActivityCategory;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -32,8 +33,9 @@ public class Activity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 100)
-    private String category;
+    private ActivityCategory category;
 
     @Column(nullable = false)
     private Integer points;
