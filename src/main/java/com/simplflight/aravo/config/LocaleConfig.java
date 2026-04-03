@@ -15,7 +15,7 @@ public class LocaleConfig {
         AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
 
         // Define Português (Brasil) como linguagem padrão
-        resolver.setDefaultLocale(new Locale("pt", "BR"));
+        resolver.setDefaultLocale(Locale.forLanguageTag("pt-BR"));
         return resolver;
     }
 }
