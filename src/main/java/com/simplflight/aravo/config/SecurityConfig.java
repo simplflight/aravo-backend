@@ -36,6 +36,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Rotas de documentação
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Bloqueia o acesso não autenticado para qualquer outra requisição
                         .anyRequest().authenticated()
                 )

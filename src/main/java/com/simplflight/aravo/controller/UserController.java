@@ -6,6 +6,7 @@ import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
 import com.simplflight.aravo.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
+    @SecurityRequirements() // Documenta a rota como pública
     public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegisterRequest request) {
 
         UserResponse response = userService.register(request);
@@ -29,6 +31,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
+    @SecurityRequirements()
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginRequest request) {
 
         String token = userService.login(request);
