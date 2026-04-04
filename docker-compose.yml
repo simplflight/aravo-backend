@@ -12,6 +12,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d aravo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   # Aplicação
   api:
@@ -20,8 +25,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
+      - SPRING_PROFILES_ACTIVE=dev
       - DB_URL=jdbc:postgresql://db:5432/aravo_db
       - DB_USER=postgres
       - DB_PASSWORD=admin
