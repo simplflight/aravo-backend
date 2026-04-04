@@ -49,13 +49,16 @@ public class ItemService {
 
         int totalCost = item.getPrice() * request.quantity();
 
-        if (currentUser.getPoints() < totalCost) {
+        User lockedUser = userRepository.findByIdWithLock(currentUser.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, getMessage("error.user.not.found")));
+
+        if (lockedUser.getPoints() < totalCost) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, getMessage("error.insufficient.points"));
         }
 
-        Inventory inventory = inventoryRepository.findByUserAndItem(currentUser, item)
+        Inventory inventory = inventoryRepository.findByUserAndItem(lockedUser, item)
                 .orElse(Inventory.builder()
-                        .user(currentUser)
+                        .user(lockedUser)
                         .item(item)
                         .quantity(0)
                         .build());
@@ -65,8 +68,8 @@ public class ItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, getMessage("error.item.max.quantity"));
         }
 
-        currentUser.setPoints(currentUser.getPoints() - totalCost);
-        userRepository.save(currentUser);
+        lockedUser.setPoints(lockedUser.getPoints() - totalCost);
+        userRepository.save(lockedUser);
 
         inventory.setQuantity(newQuantity);
         inventoryRepository.save(inventory);
