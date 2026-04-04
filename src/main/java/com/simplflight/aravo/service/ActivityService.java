@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,12 +22,19 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
     private final PointCalculationEngine pointEngine;
+    private final StreakService streakService;
 
     @Transactional
     public ActivityResponse registerActivity(User user, ActivityRegisterRequest request) {
 
         LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+
         int earnedPoints = pointEngine.calculatePoints(request.focusTime(), request.category(), now);
+        user.setPoints(user.getPoints() + earnedPoints);
+        user.setTotalPoints(user.getTotalPoints() + earnedPoints);
+
+        streakService.recordActivityToday(user, today);
 
         Activity activity = Activity.builder()
                 .user(user)
@@ -37,9 +45,6 @@ public class ActivityService {
                 .points(earnedPoints)
                 .date(now)
                 .build();
-
-        user.setPoints(user.getPoints() + earnedPoints);
-        user.setTotalPoints(user.getTotalPoints() + earnedPoints);
 
         userRepository.save(user);
         Activity savedActivity = activityRepository.save(activity);
