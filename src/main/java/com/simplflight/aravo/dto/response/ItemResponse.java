@@ -2,6 +2,7 @@ package com.simplflight.aravo.dto.response;
 
 import com.simplflight.aravo.domain.enums.ItemType;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 public record ItemResponse(
@@ -13,5 +14,5 @@ public record ItemResponse(
         ItemType type,
         String iconKey,
         Integer maxQuantity
-) {
+) implements Serializable {
 }

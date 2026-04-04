@@ -18,6 +18,14 @@ services:
       timeout: 5s
       retries: 5
 
+  # Servidor de Cache Distribuído
+  redis:
+    image: redis:7-alpine
+    container_name: aravo_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   # Aplicação
   api:
     build: .
@@ -27,11 +35,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - DB_URL=jdbc:postgresql://db:5432/aravo_db
       - DB_USER=postgres
       - DB_PASSWORD=admin
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
     restart: unless-stopped
 
 volumes:

@@ -9,6 +9,7 @@ import com.simplflight.aravo.repository.InventoryRepository;
 import com.simplflight.aravo.repository.ItemRepository;
 import com.simplflight.aravo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class ItemService {
     private final UserRepository userRepository;
     private final MessageSource messageSource;
 
+    @Cacheable(value = "store_items")
     @Transactional(readOnly = true)
     public List<ItemResponse> getAllItems() {
         return itemRepository.findAll().stream()
