@@ -1,7 +1,9 @@
 package com.simplflight.aravo.exception;
 
 import com.simplflight.aravo.dto.response.StandardError;
+import com.simplflight.aravo.util.MessageUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +17,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final MessageUtil messageUtil;
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<StandardError> handleResponseStatusException(ResponseStatusException ex, HttpServletRequest request) {
@@ -43,7 +48,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.name(),
-                "Erro de validação nos dados enviados.",
+                messageUtil.get("error.validation"),
                 request.getRequestURI(),
                 errors
         );
@@ -58,7 +63,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.name(),
-                "Corpo da requisição ausente ou formato JSON inválido.",
+                messageUtil.get("error.json.invalid"),
                 request.getRequestURI(),
                 null
         );
@@ -73,7 +78,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.name(),
-                "Conflito de integridade nos dados. Uma regra do banco de dados foi violada.",
+                messageUtil.get("error.data.integrity"),
                 request.getRequestURI(),
                 null
         );
@@ -88,7 +93,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.name(),
-                "Ocorreu um erro interno no servidor.",
+                messageUtil.get("error.internal.server"),
                 request.getRequestURI(),
                 null
         );
