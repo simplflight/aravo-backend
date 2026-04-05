@@ -5,6 +5,7 @@ import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
 import com.simplflight.aravo.dto.response.UserResponse;
+import com.simplflight.aravo.mapper.UserMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.InventoryRepository;
 import com.simplflight.aravo.repository.UserDailyTrackingRepository;
@@ -33,6 +34,7 @@ public class UserService {
     
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final MessageUtil messageUtil;
+    private final UserMapper userMapper;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -54,7 +56,7 @@ public class UserService {
         
         User savedUser = userRepository.save(user);
         
-        return mapToResponse(savedUser);
+        return userMapper.toResponse(savedUser);
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +84,7 @@ public class UserService {
     }
 
     public UserResponse getProfile(User currentUser) {
-        return mapToResponse(currentUser);
+        return userMapper.toResponse(currentUser);
     }
 
     @Transactional
@@ -103,7 +105,7 @@ public class UserService {
 
         User savedUser = userRepository.save(currentUser);
 
-        return mapToResponse(savedUser);
+        return userMapper.toResponse(savedUser);
     }
 
     @Transactional
@@ -114,20 +116,5 @@ public class UserService {
         activityRepository.deleteByUser(currentUser);
 
         userRepository.delete(currentUser);
-    }
-
-    private UserResponse mapToResponse(User user) {
-        return new UserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getName(),
-                user.getPoints(),
-                user.getTotalPoints(),
-                user.getStreak(),
-                user.getHighestStreak(),
-                user.getCreatedAt(),
-                user.getLastActivityDate()
-        );
     }
 }

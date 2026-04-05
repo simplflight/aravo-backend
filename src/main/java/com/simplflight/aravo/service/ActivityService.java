@@ -7,6 +7,7 @@ import com.simplflight.aravo.dto.request.ActivityCompleteRequest;
 import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.engine.PointCalculationEngine;
+import com.simplflight.aravo.mapper.ActivityMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.util.MessageUtil;
@@ -31,6 +32,7 @@ public class ActivityService {
 
     private final PointCalculationEngine pointEngine;
     private final MessageUtil messageUtil;
+    private final ActivityMapper activityMapper;
 
     @Transactional
     public ActivityResponse startActivity(User user, ActivityStartRequest request) {
@@ -48,9 +50,9 @@ public class ActivityService {
                 .startTime(LocalDateTime.now())
                 .build();
 
-        Activity saved = activityRepository.save(activity);
+        Activity savedActivity = activityRepository.save(activity);
 
-        return mapToResponse(saved);
+        return activityMapper.toResponse(savedActivity);
     }
 
     @Transactional
@@ -79,25 +81,16 @@ public class ActivityService {
             userRepository.save(user);
         }
 
-        return mapToResponse(activityRepository.save(activity));
+        Activity savedActivity = activityRepository.save(activity);
+
+        return activityMapper.toResponse(savedActivity);
     }
 
     @Transactional(readOnly = true)
     public List<ActivityResponse> getUserActivities(User user) {
-        return activityRepository.findAllByUserOrderByDateDesc(user)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
 
-    private ActivityResponse mapToResponse(Activity activity) {
-        return new ActivityResponse(
-                activity.getId(),
-                activity.getCategory(),
-                activity.getStatus(),
-                activity.getStartTime(),
-                activity.getEndTime(),
-                activity.getPointsEarned()
-        );
+        List<Activity> activities = activityRepository.findAllByUserOrderByDateDesc(user);
+
+        return activityMapper.toResponseList(activities);
     }
 }
