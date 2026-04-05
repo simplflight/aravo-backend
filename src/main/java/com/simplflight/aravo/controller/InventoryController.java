@@ -3,6 +3,7 @@ package com.simplflight.aravo.controller;
 import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.response.InventoryResponse;
 import com.simplflight.aravo.service.InventoryService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/inventory")
 @RequiredArgsConstructor
+@Tag(name = "Inventory", description = "Backpack and user item management")
 public class InventoryController {
 
     private final InventoryService inventoryService;

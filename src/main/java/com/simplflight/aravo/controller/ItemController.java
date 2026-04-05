@@ -4,6 +4,7 @@ import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.request.BuyItemRequest;
 import com.simplflight.aravo.dto.response.ItemResponse;
 import com.simplflight.aravo.service.ItemService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/items")
 @RequiredArgsConstructor
+@Tag(name = "Store", description = "Product catalog and online store")
 public class ItemController {
 
     private final ItemService itemService;

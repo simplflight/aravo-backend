@@ -4,14 +4,13 @@ import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
-import com.simplflight.aravo.dto.response.InventoryResponse;
 import com.simplflight.aravo.dto.response.StreakCalendarResponse;
 import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
-import com.simplflight.aravo.service.InventoryService;
 import com.simplflight.aravo.service.StreakService;
 import com.simplflight.aravo.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,11 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Tag(name = "User", description = "User management, authentication, and profiles.")
 public class UserController {
 
     private final UserService userService;

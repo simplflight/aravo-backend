@@ -5,6 +5,7 @@ import com.simplflight.aravo.dto.request.ActivityCompleteRequest;
 import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.service.ActivityService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/activities")
 @RequiredArgsConstructor
+@Tag(name = "Activity", description = "Managing activities and focus sessions.")
 public class ActivityController {
 
     private final ActivityService activityService;
