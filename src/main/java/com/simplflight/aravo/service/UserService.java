@@ -10,9 +10,8 @@ import com.simplflight.aravo.repository.InventoryRepository;
 import com.simplflight.aravo.repository.UserDailyTrackingRepository;
 import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.security.TokenService;
+import com.simplflight.aravo.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,19 +29,20 @@ public class UserService {
     private final UserDailyTrackingRepository trackingRepository;
     private final ActivityRepository activityRepository;
 
-    private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final TokenService tokenService;
-    private final MessageSource messageSource;
+    
+    private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
+    private final MessageUtil messageUtil;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.email.in.use"));
+            throw new ResponseStatusException(HttpStatus.CONFLICT, messageUtil.get("error.email.in.use"));
         }
 
         if (userRepository.existsByNickname(request.nickname())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.nickname.in.use"));
+            throw new ResponseStatusException(HttpStatus.CONFLICT, messageUtil.get("error.nickname.in.use"));
         }
 
         User user = User.builder()
@@ -60,7 +60,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public String login(UserLoginRequest request) {
 
-        String errorMessage = getMessage("error.invalid.credentials");
+        String errorMessage = messageUtil.get("error.invalid.credentials");
 
         String identifier = request.identifier();
         Optional<User> userOptional;
@@ -95,7 +95,7 @@ public class UserService {
         if (request.nickname() != null && !request.nickname().trim().isEmpty()
             && !request.nickname().equals(currentUser.getNickname())) {
             if (userRepository.existsByNickname(request.nickname())) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.nickname.in.use"));
+                throw new ResponseStatusException(HttpStatus.CONFLICT, messageUtil.get("error.nickname.in.use"));
             }
 
             currentUser.setNickname(request.nickname());
@@ -129,9 +129,5 @@ public class UserService {
                 user.getCreatedAt(),
                 user.getLastActivityDate()
         );
-    }
-
-    private String getMessage(String code) {
-        return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
     }
 }

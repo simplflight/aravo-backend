@@ -9,9 +9,8 @@ import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.engine.PointCalculationEngine;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.UserRepository;
+import com.simplflight.aravo.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +27,10 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
 
-    private final PointCalculationEngine pointEngine;
     private final StreakService streakService;
-    private final MessageSource messageSource;
+
+    private final PointCalculationEngine pointEngine;
+    private final MessageUtil messageUtil;
 
     @Transactional
     public ActivityResponse startActivity(User user, ActivityStartRequest request) {
@@ -38,7 +38,7 @@ public class ActivityService {
         boolean hasActive = activityRepository.existsByUserAndStatus(user, ActivityStatus.IN_PROGRESS);
 
         if (hasActive) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.activity.in.progress"));
+            throw new ResponseStatusException(HttpStatus.CONFLICT, messageUtil.get("error.activity.in.progress"));
         }
 
         Activity activity = Activity.builder()
@@ -57,10 +57,10 @@ public class ActivityService {
     public ActivityResponse completeActivity(User user, UUID activityId, ActivityCompleteRequest request) {
 
         Activity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, getMessage("error.activity.not.found")));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, messageUtil.get("error.activity.not.found")));
 
         if (!activity.getUser().getId().equals(user.getId()) || activity.getStatus() != ActivityStatus.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, getMessage("error.activity.not.in.progress"));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, messageUtil.get("error.activity.not.in.progress"));
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -99,9 +99,5 @@ public class ActivityService {
                 activity.getEndTime(),
                 activity.getPointsEarned()
         );
-    }
-
-    private String getMessage(String code) {
-        return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
     }
 }
