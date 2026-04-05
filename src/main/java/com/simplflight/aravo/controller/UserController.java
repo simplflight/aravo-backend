@@ -3,6 +3,7 @@ package com.simplflight.aravo.controller;
 import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
+import com.simplflight.aravo.dto.request.UserUpdateRequest;
 import com.simplflight.aravo.dto.response.StreakCalendarResponse;
 import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
@@ -59,6 +60,17 @@ public class UserController {
     ) {
 
         StreakCalendarResponse response = streakService.getCalendar(currentUser, month, year);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateProfile(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody UserUpdateRequest request
+    ) {
+
+        UserResponse response = userService.updateProfile(currentUser, request);
 
         return ResponseEntity.ok(response);
     }

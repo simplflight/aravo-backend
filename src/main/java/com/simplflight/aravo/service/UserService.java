@@ -3,6 +3,7 @@ package com.simplflight.aravo.service;
 import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
+import com.simplflight.aravo.dto.request.UserUpdateRequest;
 import com.simplflight.aravo.dto.response.UserResponse;
 import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.security.TokenService;
@@ -75,6 +76,27 @@ public class UserService {
 
     public UserResponse getProfile(User currentUser) {
         return mapToResponse(currentUser);
+    }
+
+    @Transactional
+    public UserResponse updateProfile(User currentUser, UserUpdateRequest request) {
+
+        if (request.name() != null && !request.name().trim().isEmpty()) {
+            currentUser.setName(request.name());
+        }
+
+        if (request.nickname() != null && !request.nickname().trim().isEmpty()
+            && !request.nickname().equals(currentUser.getNickname())) {
+            if (userRepository.existsByNickname(request.nickname())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, getMessage("error.nickname.in.use"));
+            }
+
+            currentUser.setNickname(request.nickname());
+        }
+
+        User savedUser = userRepository.save(currentUser);
+
+        return mapToResponse(savedUser);
     }
 
     private UserResponse mapToResponse(User user) {
