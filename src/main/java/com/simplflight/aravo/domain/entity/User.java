@@ -63,4 +63,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Activity> activities = new HashSet<>();
+
+    public void addPoints(int earnedPoints) {
+        if (earnedPoints > 0) {
+            this.points += earnedPoints;
+            this.totalPoints += earnedPoints;
+        }
+    }
 }

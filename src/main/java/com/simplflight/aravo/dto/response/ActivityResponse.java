@@ -1,6 +1,7 @@
 package com.simplflight.aravo.dto.response;
 
 import com.simplflight.aravo.domain.enums.ActivityCategory;
+import com.simplflight.aravo.domain.enums.ActivityStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -8,11 +9,10 @@ import java.util.UUID;
 public record ActivityResponse(
 
         UUID id,
-        String title,
-        String description,
         ActivityCategory category,
-        Integer focusTime,
-        Integer points,
-        LocalDateTime date
+        ActivityStatus status,
+        LocalDateTime startTime,
+        LocalDateTime endTime,
+        Integer pointsEarned
 ) {
 }

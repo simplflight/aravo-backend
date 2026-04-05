@@ -1,7 +1,8 @@
 package com.simplflight.aravo.controller;
 
 import com.simplflight.aravo.domain.entity.User;
-import com.simplflight.aravo.dto.request.ActivityRegisterRequest;
+import com.simplflight.aravo.dto.request.ActivityCompleteRequest;
+import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.service.ActivityService;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/activities")
@@ -20,21 +22,27 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
-    @PostMapping
-    public ResponseEntity<ActivityResponse> registerActivity(
-            @AuthenticationPrincipal User user,
-            @Valid @RequestBody ActivityRegisterRequest request
+    @PostMapping("/start")
+    public ResponseEntity<ActivityResponse> start(
+            @AuthenticationPrincipal User currentUser,
+            @Valid @RequestBody ActivityStartRequest request
     ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(activityService.startActivity(currentUser, request));
+    }
 
-        ActivityResponse response = activityService.registerActivity(user, request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<ActivityResponse> complete(
+            @AuthenticationPrincipal User currentUser,
+            @PathVariable UUID id,
+            @Valid @RequestBody ActivityCompleteRequest request
+            ) {
+        return ResponseEntity.ok(activityService.completeActivity(currentUser, id, request));
     }
 
     @GetMapping
-    public ResponseEntity<List<ActivityResponse>> getUserActivities(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<ActivityResponse>> getUserActivities(@AuthenticationPrincipal User currentUser) {
 
-        List<ActivityResponse> response = activityService.getUserActivities(user);
+        List<ActivityResponse> response = activityService.getUserActivities(currentUser);
 
         return ResponseEntity.ok(response);
     }

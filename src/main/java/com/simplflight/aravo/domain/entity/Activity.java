@@ -1,10 +1,12 @@
 package com.simplflight.aravo.domain.entity;
 
 import com.simplflight.aravo.domain.enums.ActivityCategory;
+import com.simplflight.aravo.domain.enums.ActivityStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,13 +39,32 @@ public class Activity {
     @Column(nullable = false, length = 100)
     private ActivityCategory category;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Integer points;
+    private ActivityStatus status;
 
-    @Column(name = "focus_time", nullable = false)
-    private Integer focusTime;
+    @Column(name = "start_time", nullable = false)
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @Column(name = "points_earned")
+    private Integer pointsEarned;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime date;
+
+    public long calculateDurationInMinutes(LocalDateTime now) {
+        return Duration.between(this.startTime, now).toMinutes();
+    }
+
+    public void complete(LocalDateTime now, int earnedPoints, String title, String description) {
+        this.endTime = now;
+        this.status = ActivityStatus.COMPLETED;
+        this.pointsEarned = earnedPoints;
+        this.title = title;
+        this.description = description;
+    }
 }
