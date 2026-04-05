@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -51,9 +51,19 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public String login(UserLoginRequest request) {
+
         String errorMessage = getMessage("error.invalid.credentials");
 
-        User user = userRepository.findByEmail(request.email())
+        String identifier = request.identifier();
+        Optional<User> userOptional;
+
+        if (identifier.contains("@")) {
+            userOptional = userRepository.findByEmail(identifier);
+        } else {
+            userOptional = userRepository.findByNickname(identifier);
+        }
+
+        User user = userOptional
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMessage));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
