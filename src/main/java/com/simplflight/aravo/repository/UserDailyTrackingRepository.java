@@ -16,4 +16,6 @@ public interface UserDailyTrackingRepository extends JpaRepository<UserDailyTrac
     Optional<UserDailyTracking> findByUserAndTrackingDate(User user, LocalDate date);
 
     List<UserDailyTracking> findByUserAndTrackingDateBetweenOrderByTrackingDateAsc(User user, LocalDate start, LocalDate end);
+
+    void deleteByUser(User user);
 }

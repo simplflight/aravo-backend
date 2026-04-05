@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface ActivityRepository extends JpaRepository<Activity, UUID> {
 
     List<Activity> findAllByUserOrderByDateDesc(User user);
+
+    void deleteByUser(User user);
 }

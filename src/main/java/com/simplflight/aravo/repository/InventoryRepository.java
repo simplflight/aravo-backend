@@ -16,4 +16,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, UUID> {
     Optional<Inventory> findByUserAndItem(User user, Item item);
 
     Optional<Inventory> findByUserAndItem_TypeAndQuantityGreaterThan(User user, ItemType itemType, Integer quantity);
+
+    void deleteByUser(User user);
 }

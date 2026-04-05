@@ -74,4 +74,12 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal User currentUser) {
+
+        userService.deleteProfile(currentUser);
+
+        return ResponseEntity.noContent().build();
+    }
 }

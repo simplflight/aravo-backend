@@ -5,6 +5,9 @@ import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
 import com.simplflight.aravo.dto.response.UserResponse;
+import com.simplflight.aravo.repository.ActivityRepository;
+import com.simplflight.aravo.repository.InventoryRepository;
+import com.simplflight.aravo.repository.UserDailyTrackingRepository;
 import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.security.TokenService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,10 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final InventoryRepository inventoryRepository;
+    private final UserDailyTrackingRepository trackingRepository;
+    private final ActivityRepository activityRepository;
+
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final TokenService tokenService;
     private final MessageSource messageSource;
@@ -97,6 +104,16 @@ public class UserService {
         User savedUser = userRepository.save(currentUser);
 
         return mapToResponse(savedUser);
+    }
+
+    @Transactional
+    public void deleteProfile(User currentUser) {
+
+        inventoryRepository.deleteByUser(currentUser);
+        trackingRepository.deleteByUser(currentUser);
+        activityRepository.deleteByUser(currentUser);
+
+        userRepository.delete(currentUser);
     }
 
     private UserResponse mapToResponse(User user) {
