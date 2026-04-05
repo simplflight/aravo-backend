@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -236,5 +237,40 @@ class ActivityServiceTest {
         });
 
         assertEquals(400, exception.getStatusCode().value(), "Deve retornar código 400 Bad Request");
+    }
+
+    @Test
+    @DisplayName("Update: Deve atualizar título e descrição com sucesso")
+    void testUpdateActivity_Success() {
+        // Arrange
+        UUID id = UUID.randomUUID();
+        Activity activity = Activity.builder().id(id).user(testUser).title("Antigo").build();
+        ActivityCompleteRequest request = new ActivityCompleteRequest("Novo Titulo", "Nova Desc");
+
+        when(activityRepository.findById(id)).thenReturn(Optional.of(activity));
+        when(activityRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(activityMapper.toResponse(any())).thenReturn(new ActivityResponse(id, null, null, null, null, null));
+
+        // Act
+        activityService.updateActivity(testUser, id, request);
+
+        // Assert
+        assertEquals("Novo Titulo", activity.getTitle());
+        verify(activityRepository).save(activity);
+    }
+
+    @Test
+    @DisplayName("Delete: Deve remover atividade com sucesso")
+    void testDeleteActivity_Success() {
+        // Arrange
+        UUID id = UUID.randomUUID();
+        Activity activity = Activity.builder().id(id).user(testUser).build();
+        when(activityRepository.findById(id)).thenReturn(Optional.of(activity));
+
+        // Act
+        activityService.deleteActivity(testUser, id);
+
+        // Assert
+        verify(activityRepository, times(1)).delete(activity);
     }
 }

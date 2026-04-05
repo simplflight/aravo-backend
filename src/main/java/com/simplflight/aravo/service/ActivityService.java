@@ -93,4 +93,33 @@ public class ActivityService {
 
         return activityMapper.toResponseList(activities);
     }
+
+    @Transactional
+    public ActivityResponse updateActivity(User user, UUID activityId, ActivityCompleteRequest request) {
+
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, messageUtil.get("error.activity.not.found")));
+
+        if (!activity.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, messageUtil.get("error.forbidden"));
+        }
+
+        activity.setTitle(request.title());
+        activity.setDescription(request.description());
+
+        return activityMapper.toResponse(activityRepository.save(activity));
+    }
+
+    @Transactional
+    public void deleteActivity(User user, UUID activityId) {
+
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, messageUtil.get("error.activity.not.found")));
+
+        if (!activity.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, messageUtil.get("error.forbidden"));
+        }
+
+        activityRepository.delete(activity);
+    }
 }

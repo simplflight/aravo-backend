@@ -35,7 +35,7 @@ public class ActivityController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable UUID id,
             @Valid @RequestBody ActivityCompleteRequest request
-            ) {
+    ) {
         return ResponseEntity.ok(activityService.completeActivity(currentUser, id, request));
     }
 
@@ -45,5 +45,25 @@ public class ActivityController {
         List<ActivityResponse> response = activityService.getUserActivities(currentUser);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ActivityResponse> update(
+            @AuthenticationPrincipal User currentUser,
+            @PathVariable UUID id,
+            @Valid @RequestBody ActivityCompleteRequest request
+    ) {
+        return ResponseEntity.ok(activityService.updateActivity(currentUser, id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @AuthenticationPrincipal User currentUser,
+            @PathVariable UUID id
+    ) {
+
+        activityService.deleteActivity(currentUser, id);
+
+        return ResponseEntity.noContent().build();
     }
 }
