@@ -57,14 +57,6 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "focus_preference", nullable = false)
-    @Builder.Default
-    private Integer focusPreference = 25;
-
-    @Column(name = "rest_preference", nullable = false)
-    @Builder.Default
-    private Integer restPreference = 5;
-
     @Column(name = "last_activity_date")
     private LocalDate lastActivityDate;
 

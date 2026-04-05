@@ -15,8 +15,6 @@ public record UserResponse(
         Integer streak,
         Integer highestStreak,
         LocalDateTime createdAt,
-        Integer focusPreference,
-        Integer restPreference,
         LocalDate lastActivityDate
 ) {
 }

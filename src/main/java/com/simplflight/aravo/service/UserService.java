@@ -88,8 +88,6 @@ public class UserService {
                 user.getStreak(),
                 user.getHighestStreak(),
                 user.getCreatedAt(),
-                user.getFocusPreference(),
-                user.getRestPreference(),
                 user.getLastActivityDate()
         );
     }
