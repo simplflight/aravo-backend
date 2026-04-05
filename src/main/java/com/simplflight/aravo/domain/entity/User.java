@@ -70,4 +70,22 @@ public class User {
             this.totalPoints += earnedPoints;
         }
     }
+
+    public void deductPoints(int amount) {
+        if (this.points >= amount) {
+            this.points -= amount;
+        }
+    }
+
+    public void incrementStreak(LocalDate today) {
+        this.streak += 1;
+        this.lastActivityDate = today;
+        if (this.streak > this.highestStreak) {
+            this.highestStreak = this.streak;
+        }
+    }
+
+    public void resetStreak() {
+        this.streak = 0;
+    }
 }

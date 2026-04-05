@@ -65,15 +65,13 @@ public class ItemService {
                         .quantity(0)
                         .build());
 
-        int newQuantity = inventory.getQuantity() + request.quantity();
-        if (newQuantity > item.getMaxQuantity()) {
+        if (!inventory.addQuantity(request.quantity(), item.getMaxQuantity())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, getMessage("error.item.max.quantity"));
         }
 
-        lockedUser.setPoints(lockedUser.getPoints() - totalCost);
-        userRepository.save(lockedUser);
+        lockedUser.deductPoints(totalCost);
 
-        inventory.setQuantity(newQuantity);
+        userRepository.save(lockedUser);
         inventoryRepository.save(inventory);
     }
 

@@ -82,18 +82,13 @@ public class StreakService {
                         .status(DailyTrackingStatus.COMPLETED)
                         .build());
 
-        tracking.setActivitiesCount(tracking.getActivitiesCount() + 1);
+        tracking.incrementActivities();
 
         trackingRepository.save(tracking);
 
         // 3. Atualiza os metadados de ofensiva se for o primeiro foco do dia
         if (!today.equals(user.getLastActivityDate())) {
-            user.setStreak(user.getStreak() + 1);
-            user.setLastActivityDate(today);
-
-            if (user.getStreak() > user.getHighestStreak()) {
-                user.setHighestStreak(user.getStreak());
-            }
+            user.incrementStreak(today);
 
             userRepository.save(user);
         }
@@ -136,7 +131,7 @@ public class StreakService {
                 trackingRepository.save(freezeTrack);
             } else {
                 // Os itens acabaram. Ofensiva zerada.
-                user.setStreak(0);
+                user.resetStreak();
 
                 userRepository.save(user);
 
@@ -160,7 +155,7 @@ public class StreakService {
     private boolean tryConsumeStreakFreeze(User user) {
         return inventoryRepository.findByUserAndItem_TypeAndQuantityGreaterThan(user, ItemType.STREAK_FREEZE, 0)
                 .map(inv -> {
-                    inv.setQuantity(inv.getQuantity() - 1);
+                    inv.consumeOne();
                     inventoryRepository.save(inv);
                     return true;
                 }).orElse(false);

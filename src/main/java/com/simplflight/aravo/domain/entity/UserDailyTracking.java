@@ -37,4 +37,8 @@ public class UserDailyTracking {
     @Column(nullable = false, length = 50)
     @Builder.Default
     private DailyTrackingStatus status = DailyTrackingStatus.COMPLETED;
+
+    public void incrementActivities() {
+        this.activitiesCount += 1;
+    }
 }
