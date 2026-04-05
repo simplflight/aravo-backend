@@ -4,9 +4,11 @@ import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
+import com.simplflight.aravo.dto.response.InventoryResponse;
 import com.simplflight.aravo.dto.response.StreakCalendarResponse;
 import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
+import com.simplflight.aravo.service.InventoryService;
 import com.simplflight.aravo.service.StreakService;
 import com.simplflight.aravo.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -17,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -24,6 +28,7 @@ public class UserController {
 
     private final UserService userService;
     private final StreakService streakService;
+    private final InventoryService inventoryService;
 
     @PostMapping("/register")
     @SecurityRequirements() // Documenta a rota como pública
@@ -62,6 +67,14 @@ public class UserController {
         StreakCalendarResponse response = streakService.getCalendar(currentUser, month, year);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/inventory")
+    public ResponseEntity<List<InventoryResponse>> getMyInventory(@AuthenticationPrincipal User currentUser) {
+
+        List<InventoryResponse> responses = inventoryService.getUserInventory(currentUser);
+
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/me")
