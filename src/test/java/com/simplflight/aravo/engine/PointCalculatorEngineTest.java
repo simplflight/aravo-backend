@@ -26,50 +26,67 @@ class PointCalculationEngineTest {
     @Test
     @DisplayName("Deve retornar 0 pontos para atividades menores que 2 minutos")
     void testIgnoredShortActivities() {
+        // Arrange
+        int focusTime = 1;
 
-        int points = engine.calculatePoints(1, ActivityCategory.STUDY, standardMonday);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
 
+        // Assert
         assertEquals(0, points);
     }
 
     @Test
     @DisplayName("Tier 1: Deve calcular 1 ponto a cada 2 minutos (até 30m)")
     void testTier1Calculation() {
+        // Arrange
+        int focusTime = 20;
 
-        // 20 minutos / 2 = 10 pontos
-        int points = engine.calculatePoints(20, ActivityCategory.STUDY, standardMonday);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
 
+        // Assert (20 minutos / 2 = 10 pontos)
         assertEquals(10, points);
     }
 
     @Test
     @DisplayName("Tier 2: Deve calcular pontos progressivos para 30 a 50 minutos")
     void testTier2Calculation() {
+        // Arrange
+        int focusTime = 40;
 
-        // 40 minutos totais = 30m no Tier 1 (15 pts) + 10m no Tier 2 (10/2 * 3 = 15 pts) = 30 pontos
-        int points = engine.calculatePoints(40, ActivityCategory.STUDY, standardMonday);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
 
+        // Assert (30m no Tier 1 (15) + 10m no Tier 2 (15) = 30 pontos)
         assertEquals(30, points);
     }
 
     @Test
     @DisplayName("Tier 3: Deve calcular pontos progressivos máximos acima de 50 minutos")
     void testTier3Calculation() {
+        // Arrange
+        int focusTime = 60;
 
-        // 60 minutos totais = 30m Tier 1 (15) + 20m Tier 2 (30) + 10m Tier 3 (10/2 * 5 = 25) = 70 pontos
-        int points = engine.calculatePoints(60, ActivityCategory.STUDY, standardMonday);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
 
+        // Assert (30m Tier 1 (15) + 20m Tier 2 (30) + 10m Tier 3 (25) = 70 pontos)
         assertEquals(70, points);
     }
 
     @Test
     @DisplayName("Limite: Não deve pontuar acima do teto de 120 minutos (MAX_REWARDABLE_MINUTES)")
     void testMaxMinutesCap() {
+        // Arrange
+        int focusTimeAtLimit = 120;
+        int focusTimeBeyondLimit = 150;
 
-        // Teto de 120m: 15 (T1) + 30 (T2) + (70m / 2 * 5 = 175) (T3) = 220 pontos base
-        int pointsAt120 = engine.calculatePoints(120, ActivityCategory.STUDY, standardMonday);
-        int pointsAt150 = engine.calculatePoints(150, ActivityCategory.STUDY, standardMonday);
+        // Act
+        int pointsAt120 = engine.calculatePoints(focusTimeAtLimit, ActivityCategory.STUDY, standardMonday);
+        int pointsAt150 = engine.calculatePoints(focusTimeBeyondLimit, ActivityCategory.STUDY, standardMonday);
 
+        // Assert (Teto de 120m deve gerar 220 pontos base)
         assertEquals(220, pointsAt120);
         assertEquals(220, pointsAt150, "O tempo extra não deve gerar mais pontos");
     }
@@ -77,37 +94,42 @@ class PointCalculationEngineTest {
     @Test
     @DisplayName("Multiplicador: Deve adicionar 20% aos finais de semana")
     void testWeekendMultiplier() {
-
+        // Arrange
+        int focusTime = 20;
         LocalDateTime saturday = LocalDateTime.of(2026, 4, 11, 10, 0);
 
-        // 20 minutos = 10 base. Com 20% de bônus, deve dar 12 pontos.
-        int points = engine.calculatePoints(20, ActivityCategory.STUDY, saturday);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, saturday);
 
+        // Assert (10 base + 20% = 12 pontos)
         assertEquals(12, points);
     }
 
     @Test
     @DisplayName("Campanha: Deve adicionar 50% para HEALTH em Outubro de 2026")
     void testHealthCampaignBonus() {
-
+        // Arrange
+        int focusTime = 20;
         LocalDateTime oct2026 = LocalDateTime.of(2026, 10, 15, 10, 0);
 
-        // 20 minutos = 10 base. Com 50% de bônus, deve dar 15 pontos.
-        int points = engine.calculatePoints(20, ActivityCategory.HEALTH, oct2026);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.HEALTH, oct2026);
 
+        // Assert (10 base + 50% = 15 pontos)
         assertEquals(15, points);
     }
 
     @Test
     @DisplayName("Acúmulo: Dia do Programador no Fim de Semana (Bônus Combinado)")
     void testProgrammerDayOnWeekendBonus() {
-
+        // Arrange
+        int focusTime = 20;
         LocalDateTime programmerDayWeekend = LocalDateTime.of(2026, 9, 13, 10, 0);
 
-        // Base(1.0) + Weekend(0.2) + Programmer(1.0) = 2.2
-        // 20 minutos = 10 pts base. 10 * 2.2 = 22 pontos
-        int points = engine.calculatePoints(20, ActivityCategory.WORK, programmerDayWeekend);
+        // Act
+        int points = engine.calculatePoints(focusTime, ActivityCategory.WORK, programmerDayWeekend);
 
+        // Assert (Base(1.0) + Weekend(0.2) + Programmer(1.0) = 2.2 -> 10 * 2.2 = 22 pontos)
         assertEquals(22, points);
     }
 }

@@ -58,11 +58,11 @@ class StreakServiceTest {
     @Test
     @DisplayName("Lazy Evaluation: usuário em dia não deve sofrer alterações na ofensiva")
     void testEvaluatePastStreak_UpToDate() {
-        
+        // Act
         streakService.evaluatePastStreak(testUser, today);
 
-        // O usuário tem atividade ontem. A diferença é de 0 dias perdidos.
-        assertEquals(5, testUser.getStreak());
+        // Assert
+        assertEquals(5, testUser.getStreak(), "A ofensiva deve ser mantida");
         verify(trackingRepository, never()).save(any());
         verify(userRepository, never()).save(any());
     }
@@ -70,11 +70,13 @@ class StreakServiceTest {
     @Test
     @DisplayName("Lazy Evaluation: Perdeu 1 dia, SEM itens STREAK_FREEZE, ofensiva é zerada")
     void testEvaluatePastStreak_MissedDay_NoFreeze() {
-        
-        testUser.setLastActivityDate(today.minusDays(2));
+        // Arrange
+        testUser.setLastActivityDate(today.minusDays(2)); // Perdeu o dia de ontem
 
+        // Act
         streakService.evaluatePastStreak(testUser, today);
 
+        // Assert
         assertEquals(0, testUser.getStreak(), "A ofensiva deve ser zerada");
         verify(userRepository, times(1)).save(testUser); // Guarda o usuário zerado
         verify(trackingRepository, never()).save(any()); // Não guarda registos FROZEN
@@ -83,7 +85,7 @@ class StreakServiceTest {
     @Test
     @DisplayName("Lazy Evaluation: Perdeu 1 dia, COM item STREAK_FREEZE, ofensiva mantida")
     void testEvaluatePastStreak_MissedDay_WithFreeze() {
-
+        // Arrange
         testUser.setLastActivityDate(today.minusDays(2)); // Perdeu o dia de ontem
 
         Inventory mockInventory = new Inventory();
@@ -93,14 +95,15 @@ class StreakServiceTest {
                 eq(testUser), eq(ItemType.STREAK_FREEZE), eq(0)))
                 .thenReturn(Optional.of(mockInventory));
 
+        // Act
         streakService.evaluatePastStreak(testUser, today);
 
-        // Asserções de Estado
+        // Assert - Estado do Usuário e Inventário
         assertEquals(5, testUser.getStreak(), "A ofensiva deve ser mantida");
         assertEquals(today.minusDays(1), testUser.getLastActivityDate(), "A data de última atividade deve avançar para ontem");
         assertEquals(0, mockInventory.getQuantity(), "O item deve ser consumido");
 
-        // Asserções de Comportamento (Verifica se guardou o tracking com estado FROZEN)
+        // Assert - Comportamento (Verifica se guardou o tracking com estado FROZEN)
         ArgumentCaptor<UserDailyTracking> trackingCaptor = ArgumentCaptor.forClass(UserDailyTracking.class);
         verify(trackingRepository).save(trackingCaptor.capture());
 
@@ -112,13 +115,14 @@ class StreakServiceTest {
     @Test
     @DisplayName("Registo: Primeira atividade do dia deve incrementar ofensiva")
     void testRecordActivityToday_FirstTime() {
-
-        // Simula que hoje ainda não há tracking criado
+        // Arrange
         when(trackingRepository.findByUserAndTrackingDate(testUser, today))
-                .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty()); // Simula que hoje ainda não há tracking criado
 
+        // Act
         streakService.recordActivityToday(testUser, today);
 
+        // Assert
         assertEquals(6, testUser.getStreak());
         assertEquals(6, testUser.getHighestStreak());
         assertEquals(today, testUser.getLastActivityDate());
@@ -130,9 +134,8 @@ class StreakServiceTest {
     @Test
     @DisplayName("Registo: Segunda atividade do mesmo dia NÃO deve incrementar ofensiva")
     void testRecordActivityToday_SecondTime() {
-
-        // Simula que o usuário já fez uma atividade hoje
-        testUser.setLastActivityDate(today);
+        // Arrange
+        testUser.setLastActivityDate(today); // Simula que o usuário já fez uma atividade hoje
 
         UserDailyTracking existingTracking = UserDailyTracking.builder()
                 .user(testUser)
@@ -144,13 +147,12 @@ class StreakServiceTest {
         when(trackingRepository.findByUserAndTrackingDate(testUser, today))
                 .thenReturn(Optional.of(existingTracking));
 
+        // Act
         streakService.recordActivityToday(testUser, today);
 
-        // A ofensiva deve continuar 5, pois já tinha sido incrementada antes
-        assertEquals(5, testUser.getStreak());
+        // Assert
+        assertEquals(5, testUser.getStreak(), "A ofensiva deve continuar 5, pois já tinha sido incrementada");
         assertEquals(2, existingTracking.getActivitiesCount(), "O contador de atividades diárias deve subir");
-
-        // Como não é o primeiro foco, não deve guardar o usuário novamente
-        verify(userRepository, never()).save(testUser);
+        verify(userRepository, never()).save(testUser); // Como não é o primeiro foco, não deve guardar o usuário
     }
 }
