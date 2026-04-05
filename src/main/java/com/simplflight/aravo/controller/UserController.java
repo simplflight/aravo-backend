@@ -28,7 +28,6 @@ public class UserController {
 
     private final UserService userService;
     private final StreakService streakService;
-    private final InventoryService inventoryService;
 
     @PostMapping("/register")
     @SecurityRequirements() // Documenta a rota como pública
@@ -67,14 +66,6 @@ public class UserController {
         StreakCalendarResponse response = streakService.getCalendar(currentUser, month, year);
 
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/me/inventory")
-    public ResponseEntity<List<InventoryResponse>> getMyInventory(@AuthenticationPrincipal User currentUser) {
-
-        List<InventoryResponse> responses = inventoryService.getUserInventory(currentUser);
-
-        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/me")
