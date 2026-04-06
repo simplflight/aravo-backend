@@ -35,6 +35,7 @@ public class SecurityConfig {
                         // Permite o acesso geral
                         .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login/google").permitAll()
                         .requestMatchers("/error").permitAll()
                         // Rotas de documentação
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
