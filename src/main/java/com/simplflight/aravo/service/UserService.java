@@ -1,6 +1,8 @@
 package com.simplflight.aravo.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.simplflight.aravo.domain.entity.User;
+import com.simplflight.aravo.dto.request.GoogleLoginRequest;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
@@ -10,6 +12,7 @@ import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.InventoryRepository;
 import com.simplflight.aravo.repository.UserDailyTrackingRepository;
 import com.simplflight.aravo.repository.UserRepository;
+import com.simplflight.aravo.security.GoogleTokenValidator;
 import com.simplflight.aravo.security.TokenService;
 import com.simplflight.aravo.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final MessageUtil messageUtil;
     private final UserMapper userMapper;
+    private final GoogleTokenValidator googleTokenValidator;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -81,6 +86,62 @@ public class UserService {
         }
 
         return tokenService.generateToken(user);
+    }
+
+    @Transactional
+    public String loginWithGoogle(GoogleLoginRequest request) {
+        try {
+            GoogleIdToken idToken = verifyGoogleToken(request.idToken());
+
+            if (idToken == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, messageUtil.get("error.google.token.invalid"));
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> createGoogleUser(payload));
+
+            return tokenService.generateToken(user);
+        } catch (ResponseStatusException e) {
+            throw e;
+        }catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, messageUtil.get("error.google.auth.failed"));
+        }
+    }
+
+    private GoogleIdToken verifyGoogleToken(String tokenString) throws Exception {
+        return googleTokenValidator.validateToken(tokenString);
+    }
+
+    private User createGoogleUser(GoogleIdToken.Payload payload) {
+
+        String name = (String) payload.get("name");
+
+        User newUser = User.builder()
+                .email(payload.getEmail())
+                .name(name)
+                .nickname(generateUniqueNickname(name))
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .points(0)
+                .streak(0)
+                .build();
+
+        return userRepository.save(newUser);
+    }
+
+    private String generateUniqueNickname(String fullName) {
+
+        String baseName = fullName.replaceAll("\\s+", "").toLowerCase();
+        String nickname;
+
+        // Verifica se por algum milagre do universo esse nick já existe
+        do {
+            nickname = baseName + UUID.randomUUID().toString().substring(0, 5);
+        } while (userRepository.existsByNickname(nickname));
+
+        return nickname;
     }
 
     public UserResponse getProfile(User currentUser) {

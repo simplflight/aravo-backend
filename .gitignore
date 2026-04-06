@@ -47,3 +47,6 @@ ehthumbs.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
 *:Zone.Identifier
+
+# Local credentials files
+src/main/resources/application-secrets.properties
