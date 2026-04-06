@@ -1,15 +1,24 @@
 package com.simplflight.aravo.engine;
 
+import com.simplflight.aravo.domain.entity.Campaign;
 import com.simplflight.aravo.domain.enums.ActivityCategory;
+import com.simplflight.aravo.repository.CampaignRepository;
+import com.simplflight.aravo.service.strategy.CampaignStrategy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class PointCalculationEngine {
 
     private static final int MAX_REWARDABLE_MINUTES = 120;
+
+    private final CampaignRepository campaignRepository;
+    private final CampaignStrategy campaignStrategy;
 
     /**
      * Calcula os pontos finais da atividade cruzando o tempo com os multiplicadores.
@@ -58,40 +67,24 @@ public class PointCalculationEngine {
     }
 
     /**
-     * Calcula os bônus contextuais de forma cumulativa.
+     * Calcula os bônus contextuais de forma cumulativa e dinâmica.
      */
     private double calculateMultiplier(ActivityCategory category, LocalDateTime date) {
 
-        double multiplier = 1.0;
-
         // Bônus de final de semana (+20%)
-        DayOfWeek day  = date.getDayOfWeek();
+        double weekendBonus = 0.0;
+        DayOfWeek day = date.getDayOfWeek();
         if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
-            multiplier += 0.20;
+            weekendBonus = 0.20;
         }
 
-        // Campanhas de incentivo
-        multiplier += getDynamicCampaignBonus(category, date);
+        // Busca campanhas ativas.
+        List<Campaign> activeCampaigns = campaignRepository.findValidCampaigns(date, category);
 
-        return  multiplier;
-    }
+        // Delega o cálculo e o limite de bônus.
+        double campaignMultiplier = campaignStrategy.calculateMultiplier(activeCampaigns);
 
-    /**
-     * Verifica possíveis bônus em relação à campanhas de incentivo
-     * TODO: repository.findActiveCampaign(category, date)
-     */
-    private double getDynamicCampaignBonus(ActivityCategory category, LocalDateTime date) {
-
-        // Mês de combate à obesidade
-        if (category == ActivityCategory.HEALTH && date.getMonthValue() == 10 && date.getYear() == 2026) {
-            return 0.50;
-        }
-
-        // Dia do programador
-        if ((category == ActivityCategory.WORK || category == ActivityCategory.STUDY) && date.getDayOfYear() == 256) {
-            return 1.0;
-        }
-
-        return 0.0;
+        // Retorna a composição final dos multiplicadores.
+        return campaignMultiplier + weekendBonus;
     }
 }
