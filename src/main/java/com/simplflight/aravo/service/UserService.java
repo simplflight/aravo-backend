@@ -1,6 +1,11 @@
 package com.simplflight.aravo.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
 import com.simplflight.aravo.domain.entity.User;
+import com.simplflight.aravo.dto.request.GoogleLoginRequest;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
@@ -13,13 +18,16 @@ import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.security.TokenService;
 import com.simplflight.aravo.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +43,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final MessageUtil messageUtil;
     private final UserMapper userMapper;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -81,6 +92,67 @@ public class UserService {
         }
 
         return tokenService.generateToken(user);
+    }
+
+    @Transactional
+    public String loginWithGoogle(GoogleLoginRequest request) {
+        try {
+            GoogleIdToken idToken = verifyGoogleToken(request.idToken());
+
+            if (idToken == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, messageUtil.get("error.google.token.invalid"));
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+
+            User user = userRepository.findByEmail(email)
+                    .orElseGet(() -> createGoogleUser(payload));
+
+            return tokenService.generateToken(user);
+        } catch (ResponseStatusException e) {
+            throw e;
+        }catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, messageUtil.get("error.google.auth.failed"));
+        }
+    }
+
+    private GoogleIdToken verifyGoogleToken(String tokenString) throws Exception {
+
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        return verifier.verify(tokenString);
+    }
+
+    private User createGoogleUser(GoogleIdToken.Payload payload) {
+
+        String name = (String) payload.get("name");
+
+        User newUser = User.builder()
+                .email(payload.getEmail())
+                .name(name)
+                .nickname(generateUniqueNickname(name))
+                .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                .points(0)
+                .streak(0)
+                .build();
+
+        return userRepository.save(newUser);
+    }
+
+    private String generateUniqueNickname(String fullName) {
+
+        String baseName = fullName.replaceAll("\\s+", "").toLowerCase();
+        String nickname;
+
+        // Verifica se por algum milagre do universo esse nick já existe
+        do {
+            nickname = baseName + UUID.randomUUID().toString().substring(0, 5);
+        } while (userRepository.existsByNickname(nickname));
+
+        return nickname;
     }
 
     public UserResponse getProfile(User currentUser) {

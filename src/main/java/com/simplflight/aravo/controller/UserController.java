@@ -1,6 +1,7 @@
 package com.simplflight.aravo.controller;
 
 import com.simplflight.aravo.domain.entity.User;
+import com.simplflight.aravo.dto.request.GoogleLoginRequest;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
@@ -41,6 +42,14 @@ public class UserController {
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginRequest request) {
 
         String token = userService.login(request);
+
+        return ResponseEntity.ok(new TokenResponse(token));
+    }
+
+    @PostMapping("/login/google")
+    public ResponseEntity<TokenResponse> loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+
+        String token = userService.loginWithGoogle(request);
 
         return ResponseEntity.ok(new TokenResponse(token));
     }
