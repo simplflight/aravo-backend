@@ -1,9 +1,6 @@
 package com.simplflight.aravo.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.simplflight.aravo.domain.entity.User;
 import com.simplflight.aravo.dto.request.GoogleLoginRequest;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
@@ -15,17 +12,16 @@ import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.InventoryRepository;
 import com.simplflight.aravo.repository.UserDailyTrackingRepository;
 import com.simplflight.aravo.repository.UserRepository;
+import com.simplflight.aravo.security.GoogleTokenValidator;
 import com.simplflight.aravo.security.TokenService;
 import com.simplflight.aravo.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,9 +39,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder; // Gerenciado pelo Spring Security
     private final MessageUtil messageUtil;
     private final UserMapper userMapper;
-
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
-    private String googleClientId;
+    private final GoogleTokenValidator googleTokenValidator;
 
     @Transactional
     public UserResponse register(UserRegisterRequest request) {
@@ -118,12 +112,7 @@ public class UserService {
     }
 
     private GoogleIdToken verifyGoogleToken(String tokenString) throws Exception {
-
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                .setAudience(Collections.singletonList(googleClientId))
-                .build();
-
-        return verifier.verify(tokenString);
+        return googleTokenValidator.validateToken(tokenString);
     }
 
     private User createGoogleUser(GoogleIdToken.Payload payload) {
