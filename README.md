@@ -67,14 +67,22 @@ git clone https://github.com/simplflight/aravo-backend.git
 cd aravo-backend
 ```
 
-### 2. Subindo a Infraestrutura Completa (Docker)
+### 2. Configuração de Variáveis Sensíveis (Local)
+O projeto utiliza OAuth2 e requer credenciais do Google para rodar localmente. Antes de subir a aplicação:
+1. Copie o arquivo de template de segredos:
+```bash
+cp src/main/resources/application-secrets.properties.example src/main/resources/application-secrets.properties
+```
+2. Abra o arquivo gerado e preencha com o seu Client ID e Client Secret gerados no Google Cloud Console.
+
+### 3. Subindo a Infraestrutura Completa (Docker)
 O `docker-compose.yml` orquestra o PostgreSQL, o Redis e a API. Para construir a imagem e iniciar os serviços:
 ```bash
 docker compose up -d --build
 ```
 (O Docker utilizará healthchecks para garantir a ordem correta de inicialização. As migrations do Flyway rodarão no startup).
 
-### 3. Execução Local para Desenvolvimento
+### 4. Execução Local para Desenvolvimento
 Para debugar localmente, suba apenas a infraestrutura de dados:
 ```bash
 docker compose up -d db redis
@@ -84,7 +92,7 @@ E inicie a aplicação pelo Maven Wrapper:
 ./mvnw spring-boot:run
 ```
 
-### 4. Acessando a Documentação (Swagger UI)
+### 5. Acessando a Documentação (Swagger UI)
 Com a aplicação rodando (porta `8080`), acesse o Swagger UI para visualizar o contrato da API e testar os endpoints:
 
 👉 http://localhost:8080/swagger-ui/index.html
