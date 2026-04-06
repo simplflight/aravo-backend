@@ -1,26 +1,43 @@
 package com.simplflight.aravo.engine;
 
 import com.simplflight.aravo.domain.enums.ActivityCategory;
+import com.simplflight.aravo.repository.CampaignRepository;
+import com.simplflight.aravo.service.strategy.CampaignStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class PointCalculationEngineTest {
 
+    @Mock
+    private CampaignRepository campaignRepository;
+
+    @Mock
+    private CampaignStrategy campaignStrategy;
+
+    @InjectMocks
     private PointCalculationEngine engine;
+
     private LocalDateTime standardMonday;
 
     @BeforeEach
     void setUp() {
-
-        engine = new PointCalculationEngine();
-
         // Um dia útil comum, fora de campanhas
         standardMonday = LocalDateTime.of(2026, 4, 6, 10, 0);
+
+        lenient().when(campaignStrategy.calculateMultiplier(any())).thenReturn(1.0);
     }
 
     @Test
@@ -106,30 +123,36 @@ class PointCalculationEngineTest {
     }
 
     @Test
-    @DisplayName("Campanha: Deve adicionar 50% para HEALTH em Outubro de 2026")
-    void testHealthCampaignBonus() {
+    @DisplayName("Campanha: Deve aplicar multiplicador retornado pela Strategy")
+    void testDynamicCampaignBonus() {
         // Arrange
         int focusTime = 20;
-        LocalDateTime oct2026 = LocalDateTime.of(2026, 10, 15, 10, 0);
+        LocalDateTime standardDay = standardMonday;
+
+        // Simula uma campanha de 50% bônus (1.5x)
+        when(campaignStrategy.calculateMultiplier(any())).thenReturn(1.5);
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.HEALTH, oct2026);
+        int points = engine.calculatePoints(focusTime, ActivityCategory.HEALTH, standardDay);
 
-        // Assert (10 base + 50% = 15 pontos)
+        // Assert (10 base * 1.5 = 15 pontos)
         assertEquals(15, points);
     }
 
     @Test
-    @DisplayName("Acúmulo: Dia do Programador no Fim de Semana (Bônus Combinado)")
-    void testProgrammerDayOnWeekendBonus() {
+    @DisplayName("Acúmulo Dinâmico: Campanha + Bônus de Fim de Semana")
+    void testDynamicCampaignOnWeekendBonus() {
         // Arrange
         int focusTime = 20;
-        LocalDateTime programmerDayWeekend = LocalDateTime.of(2026, 9, 13, 10, 0);
+        LocalDateTime saturday = LocalDateTime.of(2026, 4, 11, 10, 0); // Fim de semana (+0.20)
+
+        // Simula uma campanha de +100% bônus (2x)
+        when(campaignStrategy.calculateMultiplier(any())).thenReturn(2.0);
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.WORK, programmerDayWeekend);
+        int points = engine.calculatePoints(focusTime, ActivityCategory.WORK, saturday);
 
-        // Assert (Base(1.0) + Weekend(0.2) + Programmer(1.0) = 2.2 -> 10 * 2.2 = 22 pontos)
+        // Assert (Campanha 2.0 + Fim de semana 0.20 = 2.2 -> 10 * 2.2 = 22 pontos)
         assertEquals(22, points);
     }
 }
