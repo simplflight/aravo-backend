@@ -9,6 +9,7 @@ import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.engine.XpCalculationEngine;
 import com.simplflight.aravo.event.ActivityCompletedEvent;
+import com.simplflight.aravo.event.UserLeveledUpEvent;
 import com.simplflight.aravo.mapper.ActivityMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.UserRepository;
@@ -128,7 +129,7 @@ class ActivityServiceTest {
     }
 
     @Test
-    @DisplayName("Complete: Deve finalizar atividade, orquestrar pontos e emitir evento com sucesso")
+    @DisplayName("Complete: Deve finalizar atividade, orquestrar XP e emitir evento com sucesso")
     void testCompleteActivity_Success() {
         // Arrange
         UUID activityId = UUID.randomUUID();
@@ -146,7 +147,7 @@ class ActivityServiceTest {
 
         when(activityRepository.findById(activityId)).thenReturn(java.util.Optional.of(ongoingActivity));
 
-        // Simula que a Engine calculou 15 pontos por essa meia hora
+        // Simula que a Engine calculou 15 XP por essa meia hora
         when(pointEngine.calculateXp(anyInt(), eq(ActivityCategory.STUDY), any(LocalDateTime.class)))
                 .thenReturn(15);
 
@@ -276,5 +277,42 @@ class ActivityServiceTest {
 
         // Assert
         verify(activityRepository, times(1)).delete(activity);
+    }
+
+    @Test
+    @DisplayName("Complete: Deve emitir UserLeveledUpEvent quando o usuário subir de nível")
+    void testCompleteActivity_LevelUp() {
+        // Arrange
+        UUID activityId = UUID.randomUUID();
+
+        // Usuário quase subindo de nível
+        testUser.setXp(390);
+        testUser.setLevel(1);
+
+        Activity ongoingActivity = Activity.builder()
+                .id(activityId)
+                .user(testUser)
+                .category(ActivityCategory.STUDY)
+                .status(ActivityStatus.IN_PROGRESS)
+                .startTime(LocalDateTime.now().minusMinutes(30))
+                .build();
+
+        ActivityCompleteRequest request = new ActivityCompleteRequest("Foco intenso", null);
+        when(activityRepository.findById(activityId)).thenReturn(Optional.of(ongoingActivity));
+
+        // Simula ganho de 20 XP (390 + 20 = 410. Então o usuário sobe para o nível 2)
+        when(pointEngine.calculateXp(anyInt(), any(), any())).thenReturn(20);
+        when(activityRepository.save(any(Activity.class))).thenAnswer(i -> i.getArgument(0));
+        when(activityMapper.toResponse(any())).thenReturn(mock(ActivityResponse.class));
+
+        // Act
+        activityService.completeActivity(testUser, activityId, request);
+
+        // Assert
+        assertEquals(2, testUser.getLevel(), "O usuário deve ter subido para o Nível 2");
+
+        // Verifica se ambos os eventos foram disparados (Conclusão e Level Up)
+        verify(eventPublisher, times(1)).publishEvent(any(ActivityCompletedEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(UserLeveledUpEvent.class));
     }
 }
