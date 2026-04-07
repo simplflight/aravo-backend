@@ -8,6 +8,7 @@ import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.engine.XpCalculationEngine;
 import com.simplflight.aravo.event.ActivityCompletedEvent;
+import com.simplflight.aravo.event.UserLeveledUpEvent;
 import com.simplflight.aravo.mapper.ActivityMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.UserRepository;
@@ -74,12 +75,17 @@ public class ActivityService {
         activity.complete(now, earnedXp, request.title(), request.description());
 
         if (earnedXp > 0) {
-            user.addXp(earnedXp);
+            boolean leveledUp = user.addXp(earnedXp);
 
             userRepository.save(user);
 
-            // Todos os @EventListeners focados em 'ActivityCompletedEvent' recebem esse objeto
+            // Dispara evento de conclusão de atividade
             eventPublisher.publishEvent(new ActivityCompletedEvent(activity));
+
+            if (leveledUp) {
+                // Dispara evento de elevação de nível
+                eventPublisher.publishEvent(new UserLeveledUpEvent(user));
+            }
         }
 
         Activity savedActivity = activityRepository.save(activity);
