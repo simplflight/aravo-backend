@@ -19,7 +19,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PointCalculationEngineTest {
+class XpCalculationEngineTest {
 
     @Mock
     private CampaignRepository campaignRepository;
@@ -28,7 +28,7 @@ class PointCalculationEngineTest {
     private CampaignStrategy campaignStrategy;
 
     @InjectMocks
-    private PointCalculationEngine engine;
+    private XpCalculationEngine engine;
 
     private LocalDateTime standardMonday;
 
@@ -47,7 +47,7 @@ class PointCalculationEngineTest {
         int focusTime = 1;
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
+        int points = engine.calculateXp(focusTime, ActivityCategory.STUDY, standardMonday);
 
         // Assert
         assertEquals(0, points);
@@ -60,7 +60,7 @@ class PointCalculationEngineTest {
         int focusTime = 20;
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
+        int points = engine.calculateXp(focusTime, ActivityCategory.STUDY, standardMonday);
 
         // Assert (20 minutos / 2 = 10 pontos)
         assertEquals(10, points);
@@ -73,7 +73,7 @@ class PointCalculationEngineTest {
         int focusTime = 40;
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
+        int points = engine.calculateXp(focusTime, ActivityCategory.STUDY, standardMonday);
 
         // Assert (30m no Tier 1 (15) + 10m no Tier 2 (15) = 30 pontos)
         assertEquals(30, points);
@@ -86,7 +86,7 @@ class PointCalculationEngineTest {
         int focusTime = 60;
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, standardMonday);
+        int points = engine.calculateXp(focusTime, ActivityCategory.STUDY, standardMonday);
 
         // Assert (30m Tier 1 (15) + 20m Tier 2 (30) + 10m Tier 3 (25) = 70 pontos)
         assertEquals(70, points);
@@ -100,8 +100,8 @@ class PointCalculationEngineTest {
         int focusTimeBeyondLimit = 150;
 
         // Act
-        int pointsAt120 = engine.calculatePoints(focusTimeAtLimit, ActivityCategory.STUDY, standardMonday);
-        int pointsAt150 = engine.calculatePoints(focusTimeBeyondLimit, ActivityCategory.STUDY, standardMonday);
+        int pointsAt120 = engine.calculateXp(focusTimeAtLimit, ActivityCategory.STUDY, standardMonday);
+        int pointsAt150 = engine.calculateXp(focusTimeBeyondLimit, ActivityCategory.STUDY, standardMonday);
 
         // Assert (Teto de 120m deve gerar 220 pontos base)
         assertEquals(220, pointsAt120);
@@ -116,7 +116,7 @@ class PointCalculationEngineTest {
         LocalDateTime saturday = LocalDateTime.of(2026, 4, 11, 10, 0);
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.STUDY, saturday);
+        int points = engine.calculateXp(focusTime, ActivityCategory.STUDY, saturday);
 
         // Assert (10 base + 20% = 12 pontos)
         assertEquals(12, points);
@@ -133,7 +133,7 @@ class PointCalculationEngineTest {
         when(campaignStrategy.calculateMultiplier(any())).thenReturn(1.5);
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.HEALTH, standardDay);
+        int points = engine.calculateXp(focusTime, ActivityCategory.HEALTH, standardDay);
 
         // Assert (10 base * 1.5 = 15 pontos)
         assertEquals(15, points);
@@ -150,7 +150,7 @@ class PointCalculationEngineTest {
         when(campaignStrategy.calculateMultiplier(any())).thenReturn(2.0);
 
         // Act
-        int points = engine.calculatePoints(focusTime, ActivityCategory.WORK, saturday);
+        int points = engine.calculateXp(focusTime, ActivityCategory.WORK, saturday);
 
         // Assert (Campanha 2.0 + Fim de semana 0.20 = 2.2 -> 10 * 2.2 = 22 pontos)
         assertEquals(22, points);

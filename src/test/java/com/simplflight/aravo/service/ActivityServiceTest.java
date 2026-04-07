@@ -7,7 +7,7 @@ import com.simplflight.aravo.domain.enums.ActivityStatus;
 import com.simplflight.aravo.dto.request.ActivityCompleteRequest;
 import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
-import com.simplflight.aravo.engine.PointCalculationEngine;
+import com.simplflight.aravo.engine.XpCalculationEngine;
 import com.simplflight.aravo.event.ActivityCompletedEvent;
 import com.simplflight.aravo.mapper.ActivityMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
@@ -40,7 +40,7 @@ class ActivityServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private PointCalculationEngine pointEngine;
+    private XpCalculationEngine pointEngine;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock
@@ -58,7 +58,7 @@ class ActivityServiceTest {
     void setUp() {
         testUser = User.builder()
                 .id(UUID.randomUUID())
-                .points(100)
+                .xp(100)
                 .streak(5)
                 .build();
 
@@ -147,7 +147,7 @@ class ActivityServiceTest {
         when(activityRepository.findById(activityId)).thenReturn(java.util.Optional.of(ongoingActivity));
 
         // Simula que a Engine calculou 15 pontos por essa meia hora
-        when(pointEngine.calculatePoints(anyInt(), eq(ActivityCategory.STUDY), any(LocalDateTime.class)))
+        when(pointEngine.calculateXp(anyInt(), eq(ActivityCategory.STUDY), any(LocalDateTime.class)))
                 .thenReturn(15);
 
         when(activityRepository.save(any(Activity.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -158,8 +158,8 @@ class ActivityServiceTest {
         );
         when(activityMapper.toResponse(ongoingActivity)).thenReturn(expectedResponse);
 
-        // Guarda os pontos originais para checar posteriormente
-        int pointsBefore = testUser.getPoints();
+        // Guarda o XP original para checar posteriormente
+        int xpBefore = testUser.getXp();
 
         // Act
         ActivityResponse response = activityService.completeActivity(testUser, activityId, request);
@@ -169,7 +169,7 @@ class ActivityServiceTest {
         assertEquals(ActivityStatus.COMPLETED, response.status());
 
         // Assert - Efeitos na Orquestração (verifica se chamou os componentes certos)
-        verify(pointEngine, times(1)).calculatePoints(anyInt(), any(), any());
+        verify(pointEngine, times(1)).calculateXp(anyInt(), any(), any());
         verify(userRepository, times(1)).save(testUser);
 
         // Verifica evento
@@ -180,10 +180,10 @@ class ActivityServiceTest {
         assertNotNull(ongoingActivity.getEndTime(), "O horário de término não pode ser nulo");
         assertEquals("Estudo de Java", ongoingActivity.getTitle(), "Deve ter injetado o título");
         assertEquals("Lendo documentação", ongoingActivity.getDescription());
-        assertEquals(15, ongoingActivity.getPointsEarned(), "Deve ter salvo os pontos ganhos na atividade");
+        assertEquals(15, ongoingActivity.getXpEarned(), "Deve ter salvo o XP ganho na atividade");
 
-        // Verifica se o usuário recebeu os pontos corretamente
-        assertEquals(pointsBefore + 15, testUser.getPoints(), "O usuário deve ter recebido os pontos");
+        // Verifica se o usuário recebeu o XP corretamente
+        assertEquals(xpBefore + 15, testUser.getXp(), "O usuário deve ter recebido o XP");
     }
 
     @Test
@@ -210,7 +210,7 @@ class ActivityServiceTest {
         assertEquals(400, exception.getStatusCode().value(), "Deve retornar código 400 Bad Request");
 
         // Garante que nada foi manipulado
-        verify(pointEngine, never()).calculatePoints(anyInt(), any(), any());
+        verify(pointEngine, never()).calculateXp(anyInt(), any(), any());
         verify(eventPublisher, never()).publishEvent(any());
         verify(activityRepository, never()).save(any());
     }
