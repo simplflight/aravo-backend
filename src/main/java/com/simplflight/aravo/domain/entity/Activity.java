@@ -49,8 +49,8 @@ public class Activity {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    @Column(name = "points_earned")
-    private Integer pointsEarned;
+    @Column(name = "xp_earned")
+    private Integer xpEarned;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -60,10 +60,10 @@ public class Activity {
         return Duration.between(this.startTime, now).toMinutes();
     }
 
-    public void complete(LocalDateTime now, int earnedPoints, String title, String description) {
+    public void complete(LocalDateTime now, int xpEarned, String title, String description) {
         this.endTime = now;
         this.status = ActivityStatus.COMPLETED;
-        this.pointsEarned = earnedPoints;
+        this.xpEarned = xpEarned;
         this.title = title;
         this.description = description;
     }

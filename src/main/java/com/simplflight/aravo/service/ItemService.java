@@ -54,7 +54,7 @@ public class ItemService {
         User lockedUser = userRepository.findByIdWithLock(currentUser.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, messageUtil.get("error.user.not.found")));
 
-        if (lockedUser.getPoints() < totalCost) {
+        if (lockedUser.getShards() < totalCost) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, messageUtil.get("error.insufficient.points"));
         }
 
@@ -69,7 +69,7 @@ public class ItemService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, messageUtil.get("error.item.max.quantity"));
         }
 
-        lockedUser.deductPoints(totalCost);
+        lockedUser.deductShards(totalCost);
 
         userRepository.save(lockedUser);
         inventoryRepository.save(inventory);

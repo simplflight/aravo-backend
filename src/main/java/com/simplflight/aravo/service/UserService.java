@@ -124,7 +124,7 @@ public class UserService {
                 .name(name)
                 .nickname(generateUniqueNickname(name))
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                .points(0)
+                .shards(0)
                 .streak(0)
                 .build();
 

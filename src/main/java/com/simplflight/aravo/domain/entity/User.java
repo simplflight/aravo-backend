@@ -39,11 +39,15 @@ public class User {
 
     @Column(nullable = false)
     @Builder.Default
-    private Integer points = 0;
+    private Integer shards = 0;
 
-    @Column(name = "total_points", nullable = false)
+    @Column(nullable = false)
     @Builder.Default
-    private Integer totalPoints = 0;
+    private Integer xp = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer level = 1;
 
     @Column(nullable = false)
     @Builder.Default
@@ -64,16 +68,21 @@ public class User {
     @Builder.Default
     private Set<Activity> activities = new HashSet<>();
 
-    public void addPoints(int earnedPoints) {
-        if (earnedPoints > 0) {
-            this.points += earnedPoints;
-            this.totalPoints += earnedPoints;
+    /**
+     * Adiciona Fragmentos de Foco à carteira do usuário.
+     */
+    public void addShards(int amount) {
+        if (amount > 0) {
+            this.shards += amount;
         }
     }
 
-    public void deductPoints(int amount) {
-        if (this.points >= amount) {
-            this.points -= amount;
+    /**
+     * Consome Fragmentos de Foco (compras na loja).
+     */
+    public void deductShards(int amount) {
+        if (this.shards >= amount) {
+            this.shards -= amount;
         }
     }
 
@@ -87,5 +96,33 @@ public class User {
 
     public void resetStreak() {
         this.streak = 0;
+    }
+
+    /**
+     * Adiciona XP.
+     * Retorna TRUE se o usuário subiu de nível.
+     */
+    public boolean addXp(int gainedXp) {
+        if (gainedXp <= 0) return false;
+
+        this.xp += gainedXp;
+
+        int newLevel = calculateLevelFromXp(this.xp);
+
+        if (newLevel > this.level) {
+            this.level = newLevel;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fórmula exponencial: Level = Raiz Quadrada de (XP / constante)
+     */
+    private int calculateLevelFromXp(int totalXp) {
+        if (totalXp < 400) return 1;
+
+        int calculatedLevel = (int) Math.sqrt(totalXp / 100.0);
+        return Math.max(1, calculatedLevel);
     }
 }

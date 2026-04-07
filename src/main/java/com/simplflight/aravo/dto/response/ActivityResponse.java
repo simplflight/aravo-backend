@@ -13,6 +13,6 @@ public record ActivityResponse(
         ActivityStatus status,
         LocalDateTime startTime,
         LocalDateTime endTime,
-        Integer pointsEarned
+        Integer xpEarned
 ) {
 }
