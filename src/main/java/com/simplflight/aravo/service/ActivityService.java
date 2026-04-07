@@ -78,7 +78,7 @@ public class ActivityService {
 
             userRepository.save(user);
 
-            // Todos os @EventListeners recebem esse objeto
+            // Todos os @EventListeners focados em 'ActivityCompletedEvent' recebem esse objeto
             eventPublisher.publishEvent(new ActivityCompletedEvent(activity));
         }
 

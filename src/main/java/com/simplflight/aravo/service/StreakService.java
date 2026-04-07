@@ -5,10 +5,12 @@ import com.simplflight.aravo.domain.entity.UserDailyTracking;
 import com.simplflight.aravo.domain.enums.DailyTrackingStatus;
 import com.simplflight.aravo.domain.enums.ItemType;
 import com.simplflight.aravo.dto.response.StreakCalendarResponse;
+import com.simplflight.aravo.event.ActivityCompletedEvent;
 import com.simplflight.aravo.repository.InventoryRepository;
 import com.simplflight.aravo.repository.UserDailyTrackingRepository;
 import com.simplflight.aravo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -159,5 +161,18 @@ public class StreakService {
                     inventoryRepository.save(inv);
                     return true;
                 }).orElse(false);
+    }
+
+    /**
+     * Quando uma atividade é finalizada, o Spring repassa o evento para cá.
+     * Como o disparo é síncrono, ele roda na mesma Transactional de ActivityService.
+     */
+    @EventListener
+    public void handleActivityCompleted(ActivityCompletedEvent event) {
+
+        User user = event.activity().getUser();
+        LocalDate today = LocalDate.now();
+
+        recordActivityToday(user, today);
     }
 }
