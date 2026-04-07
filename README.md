@@ -8,6 +8,7 @@
 ![Flyway](https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logo=flyway&logoColor=white)
 ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 ![OAuth2](https://img.shields.io/badge/OAuth2-Google-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Event Driven](https://img.shields.io/badge/Event--Driven-Spring_Events-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 
 > Motor RESTful para gerenciamento de rotinas, engine de gamificação e economia virtual.
 
@@ -24,6 +25,7 @@ A arquitetura foi desenhada para garantir escalabilidade transacional, altíssim
 * 🧠 **Gestão de Foco**: Ciclo de vida completo de atividades (criação, edição e exclusão) com tracking de tempo validado diretamente no servidor.
 * 🛒 **Transações e Economia (`Item` & `Inventory`)**: Controle transacional rigoroso com **Pessimistic Locking** de banco de dados para prevenir fraudes e Condição de Corrida (*Double Spend*). A vitrine da loja utiliza **Cache Distribuído (Redis)** para respostas na casa dos milissegundos.
 * 🔥 **Motor de Streaks (`StreakService`)**: Utiliza o padrão avançado de **Lazy Evaluation** (Avaliação Preguiçosa) para auditar lacunas no calendário e consumir itens de proteção (`STREAK_FREEZE`) apenas no momento da interação do usuário, eliminando o gargalo de processamentos pesados em background (Cron Jobs).
+* 📡 **Arquitetura Orientada a Eventos (EDA)**: Desacoplamento de domínios utilizando **Spring Application Events** (Padrão Publisher/Subscriber). O processamento de mecânicas reativas (como Streaks e XP) ocorre de forma isolada do fluxo principal via `@EventListener`, garantindo a integridade transacional sem ferir o Princípio do Aberto/Fechado (OCP).
 * 🌍 **Internacionalização (i18n)**: Suporte dinâmico a múltiplos idiomas via `LocaleConfig`, garantindo que exceções, validações e retornos da API cheguem formatados de acordo com o Locale do client.
 
 ---
