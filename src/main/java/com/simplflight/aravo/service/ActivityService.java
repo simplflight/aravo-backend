@@ -7,11 +7,13 @@ import com.simplflight.aravo.dto.request.ActivityCompleteRequest;
 import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.engine.PointCalculationEngine;
+import com.simplflight.aravo.event.ActivityCompletedEvent;
 import com.simplflight.aravo.mapper.ActivityMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.UserRepository;
 import com.simplflight.aravo.util.MessageUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +30,7 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
 
-    private final StreakService streakService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final PointCalculationEngine pointEngine;
     private final MessageUtil messageUtil;
@@ -66,19 +68,18 @@ public class ActivityService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-
         long durationInMinutes = activity.calculateDurationInMinutes(now);
 
         int earnedPoints = pointEngine.calculatePoints((int) durationInMinutes, activity.getCategory(), now);
-
         activity.complete(now, earnedPoints, request.title(), request.description());
 
         if (earnedPoints > 0) {
             user.addPoints(earnedPoints);
 
-            streakService.recordActivityToday(user, now.toLocalDate());
-
             userRepository.save(user);
+
+            // Todos os @EventListeners focados em 'ActivityCompletedEvent' recebem esse objeto
+            eventPublisher.publishEvent(new ActivityCompletedEvent(activity));
         }
 
         Activity savedActivity = activityRepository.save(activity);

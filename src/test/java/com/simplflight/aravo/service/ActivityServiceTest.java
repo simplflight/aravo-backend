@@ -8,6 +8,7 @@ import com.simplflight.aravo.dto.request.ActivityCompleteRequest;
 import com.simplflight.aravo.dto.request.ActivityStartRequest;
 import com.simplflight.aravo.dto.response.ActivityResponse;
 import com.simplflight.aravo.engine.PointCalculationEngine;
+import com.simplflight.aravo.event.ActivityCompletedEvent;
 import com.simplflight.aravo.mapper.ActivityMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
 import com.simplflight.aravo.repository.UserRepository;
@@ -20,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -40,7 +42,7 @@ class ActivityServiceTest {
     @Mock
     private PointCalculationEngine pointEngine;
     @Mock
-    private StreakService streakService;
+    private ApplicationEventPublisher eventPublisher;
     @Mock
     private ActivityMapper activityMapper;
     @Mock
@@ -126,7 +128,7 @@ class ActivityServiceTest {
     }
 
     @Test
-    @DisplayName("Complete: Deve finalizar atividade, orquestrar pontos e ofensiva com sucesso")
+    @DisplayName("Complete: Deve finalizar atividade, orquestrar pontos e emitir evento com sucesso")
     void testCompleteActivity_Success() {
         // Arrange
         UUID activityId = UUID.randomUUID();
@@ -168,8 +170,10 @@ class ActivityServiceTest {
 
         // Assert - Efeitos na Orquestração (verifica se chamou os componentes certos)
         verify(pointEngine, times(1)).calculatePoints(anyInt(), any(), any());
-        verify(streakService, times(1)).recordActivityToday(eq(testUser), any());
         verify(userRepository, times(1)).save(testUser);
+
+        // Verifica evento
+        verify(eventPublisher, times(1)).publishEvent(any(ActivityCompletedEvent.class));
 
         // Assert - Efeitos nas Entidades
         assertEquals(ActivityStatus.COMPLETED, ongoingActivity.getStatus(), "O status da entidade deve mudar para COMPLETED");
@@ -207,7 +211,7 @@ class ActivityServiceTest {
 
         // Garante que nada foi manipulado
         verify(pointEngine, never()).calculatePoints(anyInt(), any(), any());
-        verify(streakService, never()).recordActivityToday(any(), any());
+        verify(eventPublisher, never()).publishEvent(any());
         verify(activityRepository, never()).save(any());
     }
 
