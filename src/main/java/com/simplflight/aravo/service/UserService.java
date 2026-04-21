@@ -6,6 +6,7 @@ import com.simplflight.aravo.dto.request.GoogleLoginRequest;
 import com.simplflight.aravo.dto.request.UserLoginRequest;
 import com.simplflight.aravo.dto.request.UserRegisterRequest;
 import com.simplflight.aravo.dto.request.UserUpdateRequest;
+import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
 import com.simplflight.aravo.mapper.UserMapper;
 import com.simplflight.aravo.repository.ActivityRepository;
@@ -65,7 +66,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public String login(UserLoginRequest request) {
+    public TokenResponse login(UserLoginRequest request) {
 
         String errorMessage = messageUtil.get("error.invalid.credentials");
 
@@ -85,11 +86,32 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, errorMessage);
         }
 
-        return tokenService.generateToken(user);
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
+
+        return new TokenResponse(accessToken, refreshToken);
+    }
+
+    public TokenResponse refreshToken(String refreshToken) {
+
+        String userEmail = tokenService.validateRefreshToken(refreshToken);
+
+        if (userEmail == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, messageUtil.get("error.refresh.token.invalid"));
+        }
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, messageUtil.get("error.user.not.found")));
+
+        // Gera novo par de tokens (rotacionamento de Refresh Token)
+        String newAccessToken = tokenService.generateAccessToken(user);
+        String newRefreshToken = tokenService.generateRefreshToken(user);
+
+        return new TokenResponse(newAccessToken, newRefreshToken);
     }
 
     @Transactional
-    public String loginWithGoogle(GoogleLoginRequest request) {
+    public TokenResponse loginWithGoogle(GoogleLoginRequest request) {
         try {
             GoogleIdToken idToken = verifyGoogleToken(request.idToken());
 
@@ -103,7 +125,10 @@ public class UserService {
             User user = userRepository.findByEmail(email)
                     .orElseGet(() -> createGoogleUser(payload));
 
-            return tokenService.generateToken(user);
+            String accessToken = tokenService.generateAccessToken(user);
+            String refreshToken = tokenService.generateRefreshToken(user);
+
+            return new TokenResponse(accessToken, refreshToken);
         } catch (ResponseStatusException e) {
             throw e;
         }catch (Exception e) {

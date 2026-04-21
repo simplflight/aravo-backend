@@ -1,10 +1,7 @@
 package com.simplflight.aravo.controller;
 
 import com.simplflight.aravo.domain.entity.User;
-import com.simplflight.aravo.dto.request.GoogleLoginRequest;
-import com.simplflight.aravo.dto.request.UserLoginRequest;
-import com.simplflight.aravo.dto.request.UserRegisterRequest;
-import com.simplflight.aravo.dto.request.UserUpdateRequest;
+import com.simplflight.aravo.dto.request.*;
 import com.simplflight.aravo.dto.response.StreakCalendarResponse;
 import com.simplflight.aravo.dto.response.TokenResponse;
 import com.simplflight.aravo.dto.response.UserResponse;
@@ -41,17 +38,25 @@ public class UserController {
     @SecurityRequirements()
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody UserLoginRequest request) {
 
-        String token = userService.login(request);
+        TokenResponse response = userService.login(request);
 
-        return ResponseEntity.ok(new TokenResponse(token));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login/google")
     public ResponseEntity<TokenResponse> loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
 
-        String token = userService.loginWithGoogle(request);
+        TokenResponse response = userService.loginWithGoogle(request);
 
-        return ResponseEntity.ok(new TokenResponse(token));
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+
+        TokenResponse response = userService.refreshToken(request.refreshToken());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
