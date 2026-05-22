@@ -75,6 +75,8 @@ class ActivityServiceTest {
         Activity savedActivity = Activity.builder()
                 .id(UUID.randomUUID())
                 .user(testUser)
+                .title("test")
+                .description("test")
                 .category(ActivityCategory.STUDY)
                 .status(ActivityStatus.IN_PROGRESS)
                 .startTime(LocalDateTime.now())
@@ -83,8 +85,8 @@ class ActivityServiceTest {
         when(activityRepository.save(any(Activity.class))).thenReturn(savedActivity);
 
         ActivityResponse expectedResponse = new ActivityResponse(
-                savedActivity.getId(), ActivityCategory.STUDY, ActivityStatus.IN_PROGRESS,
-                savedActivity.getStartTime(), null, null
+                savedActivity.getId(), savedActivity.getTitle(), savedActivity.getDescription(),
+                ActivityCategory.STUDY, ActivityStatus.IN_PROGRESS, savedActivity.getStartTime(), null, null
         );
 
         when(activityMapper.toResponse(savedActivity)).thenReturn(expectedResponse);
@@ -130,6 +132,8 @@ class ActivityServiceTest {
     void testCompleteActivity_Success() {
         // Arrange
         UUID activityId = UUID.randomUUID();
+        String title = "Estudo de Java";
+        String description = "Lendo documentação";
 
         // Cria uma atividade que começou há 30 minutos
         Activity ongoingActivity = Activity.builder()
@@ -140,7 +144,7 @@ class ActivityServiceTest {
                 .startTime(LocalDateTime.now().minusMinutes(30))
                 .build();
 
-        ActivityCompleteRequest request = new ActivityCompleteRequest("Estudo de Java", "Lendo documentação");
+        ActivityCompleteRequest request = new ActivityCompleteRequest(title, description);
 
         when(activityRepository.findById(activityId)).thenReturn(java.util.Optional.of(ongoingActivity));
 
@@ -151,7 +155,7 @@ class ActivityServiceTest {
         when(activityRepository.save(any(Activity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ActivityResponse expectedResponse = new ActivityResponse(
-                activityId, ActivityCategory.STUDY, ActivityStatus.COMPLETED,
+                activityId, title, description, ActivityCategory.STUDY, ActivityStatus.COMPLETED,
                 ongoingActivity.getStartTime(), LocalDateTime.now(), 15
         );
         when(activityMapper.toResponse(ongoingActivity)).thenReturn(expectedResponse);
@@ -174,8 +178,8 @@ class ActivityServiceTest {
         // Assert - Efeitos nas Entidades
         assertEquals(ActivityStatus.COMPLETED, ongoingActivity.getStatus(), "O status da entidade deve mudar para COMPLETED");
         assertNotNull(ongoingActivity.getEndTime(), "O horário de término não pode ser nulo");
-        assertEquals("Estudo de Java", ongoingActivity.getTitle(), "Deve ter injetado o título");
-        assertEquals("Lendo documentação", ongoingActivity.getDescription());
+        assertEquals(title, ongoingActivity.getTitle(), "Deve ter injetado o título");
+        assertEquals(description, ongoingActivity.getDescription());
         assertEquals(15, ongoingActivity.getPointsEarned(), "Deve ter salvo os pontos ganhos na atividade");
 
         // Verifica se o usuário recebeu os pontos corretamente
@@ -249,7 +253,7 @@ class ActivityServiceTest {
 
         when(activityRepository.findById(id)).thenReturn(Optional.of(activity));
         when(activityRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-        when(activityMapper.toResponse(any())).thenReturn(new ActivityResponse(id, null, null, null, null, null));
+        when(activityMapper.toResponse(any())).thenReturn(new ActivityResponse(id, null, null, null, null, null, null, null));
 
         // Act
         activityService.updateActivity(testUser, id, request);
