@@ -9,6 +9,8 @@ import java.util.UUID;
 public record ActivityResponse(
 
         UUID id,
+        String title,
+        String description,
         ActivityCategory category,
         ActivityStatus status,
         LocalDateTime startTime,
